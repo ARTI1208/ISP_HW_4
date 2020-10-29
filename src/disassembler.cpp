@@ -7,7 +7,7 @@
 #include <sys/mman.h>
 #include <string>
 #include "assembler.h"
-#include "disassebmler.h"
+#include "disassembler.h"
 
 static size_t readNum(const char* str, size_t dataLen, std::string& command) {
     if (dataLen < sizeof(double)) return 0;

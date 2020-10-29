@@ -10,20 +10,32 @@ On linux, you can build using CMake
 ## Run
 Run CPU, filename is path to code in pseudo-asm
    
+    out/cpu <filename>
+
+or
+   
     out/executable e <filename>
 
 ----
     
 Run assembler, input is path to file with code in pseudo-asm, 
 output - path to file where bytecodes will be written
+   
+    out/asm <input> <output>
 
+or
+   
     out/executable a <input> <output>
 
 ----
     
 Run disassembler, input is path to file with bytecode, 
 output - path to file where code in pseudo-asm will be written
+   
+    out/disasm <input> <output>
 
+or
+   
     out/executable d <input> <output> 
 
 There are example files in assets folder

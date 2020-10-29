@@ -9,3 +9,4 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 add_dependencies(tests executable)
+add_compile_options(-Wall -Wextra -O0 -g)

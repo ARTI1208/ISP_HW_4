@@ -1,6 +1,6 @@
 #include "processor.h"
 #include "assembler.h"
-#include "disassebmler.h"
+#include "disassembler.h"
 
 static int runExecute(const char* programPath) {
     processor p;
