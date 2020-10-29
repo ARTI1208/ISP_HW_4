@@ -1,0 +1,12 @@
+in
+pop ax
+push ax
+push ax
+mul
+push 4
+in
+mul
+in
+mul
+sub
+out

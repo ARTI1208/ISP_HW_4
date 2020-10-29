@@ -1,0 +1,6 @@
+in
+in
+mul
+push 10
+add
+out
