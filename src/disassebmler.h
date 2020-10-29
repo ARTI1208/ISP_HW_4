@@ -6,9 +6,9 @@
 #define ISP_DZ4_DISASSEBMLER_H
 
 
-class disassebmler {
+#include <vector>
 
-};
+bool disassemble(const char* originalPath, const char* writePath);
 
 
 #endif //ISP_DZ4_DISASSEBMLER_H

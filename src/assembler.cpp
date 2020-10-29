@@ -2,38 +2,16 @@
 // Created by arti1208 on 28.10.2020.
 //
 
-#include <fstream>
 #include <fcntl.h>
 #include <libnet.h>
 #include <sys/mman.h>
-#include <iostream>
 #include "assembler.h"
-
-static int commandParamsCount(command c) {
-    switch (c) {
-        case ADD:
-        case SUB:
-        case MUL:
-        case DIV:
-        case SQRT:
-        case IN:
-        case OUT:
-        case POP:
-        case PUSH: return 1 | WAITING_NUM;
-        case POP_REG: return 1 | WAITING_REG;
-        case PUSH_REG: return 2 | WAITING_REG;
-    }
-
-    return 0;
-}
 
 static size_t nextLexemLen(const char* str, size_t dataLen, size_t& from) {
     bool lexemStarted = false;
     for (size_t i = 0; i < dataLen; ++i) {
-//        std::cout << str[i];
         if (i == dataLen || str[i] == '\n' || str[i] == ' ') {
             if (lexemStarted) {
-//                std::cout << "|";
                 return i - from;
             }
         } else if (!lexemStarted){
@@ -42,11 +20,10 @@ static size_t nextLexemLen(const char* str, size_t dataLen, size_t& from) {
         }
     }
 
-//    std::cout << "|";
     return dataLen;
 }
 
-static char readReg(char* str, size_t len) {
+static char readReg(const char* str, size_t len) {
     if (len != 2) return -1;
 
     if (strncmp(str, "ax", len) == 0) {
@@ -60,16 +37,7 @@ static char readReg(char* str, size_t len) {
     } else return -1;
 }
 
-static bool readRegAndPush(char* str, size_t len, std::vector<char>& result) {
-    char reg = readReg(str, len);
-    if (reg < 0) return false;
-
-    result.push_back(reg);
-
-    return true;
-}
-
-static bool readNum(char* str, size_t len, std::vector<char>& result) {
+static bool readNum(const char* str, size_t len, std::vector<char>& result) {
     union {
         char data[sizeof(double)];
         double value;
@@ -100,13 +68,13 @@ static bool readNum(char* str, size_t len, std::vector<char>& result) {
     return true;
 }
 
-static size_t readCommand(char* str, size_t dataLen, std::vector<char>& result) {
+static size_t readCommand(const char* str, size_t dataLen, std::vector<char>& result) {
     size_t commandStart = 0;
     size_t commandLen = nextLexemLen(str, dataLen, commandStart);
 
     str += commandStart;
 
-    if (commandLen == 0 || dataLen < commandLen) return dataLen;
+    if (commandLen == 0 || dataLen < commandLen) return 0;
 
     if (commandLen == 4) {
         if (strncmp(str, "sqrt", commandLen) == 0) {
@@ -175,10 +143,10 @@ static size_t readCommand(char* str, size_t dataLen, std::vector<char>& result) 
     }
 
 
-    return -1;
+    return 0;
 }
 
-bool assembly(const char* path, std::vector<char>& result) {
+bool assemble(const char* path, std::vector<char>& result) {
 
     int descriptor = open(path, O_RDONLY);
 
@@ -193,7 +161,9 @@ bool assembly(const char* path, std::vector<char>& result) {
     off_t start = 0;
     for (off_t i = 0; i <= fileStat.st_size;) {
         if (i == fileStat.st_size || data[i] == '\n' || data[i] == ' ') {
-            i = start + readCommand(data + start, fileStat.st_size - start, result) + 1;
+            size_t commandReadResult = readCommand(data + start, fileStat.st_size - start, result);
+            if (commandReadResult == 0) return false;
+            i = start + commandReadResult + 1;
             start = i;
         } else {
             ++i;

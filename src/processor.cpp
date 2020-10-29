@@ -6,6 +6,7 @@
 #include <iostream>
 #include "processor.h"
 #include "assembler.h"
+#include "checks.h"
 
 static bool charsToDouble(const std::vector<char>& data, size_t from, double& res) {
     if (from + sizeof(double) >= data.size()) return false;
@@ -16,7 +17,7 @@ static bool charsToDouble(const std::vector<char>& data, size_t from, double& re
 
 processor_state processor::execute(const char* path) {
     std::vector<char> data;
-    if (!assembly(path, data)) return IO_ERROR;
+    if (!assemble(path, data)) return IO_ERROR;
 
     for (size_t i = 0; i < data.size();) {
         processor_state state = PROCESSOR_OK;
@@ -101,6 +102,8 @@ processor_state processor::div() {
 
     unbr_stack_state secondPop = cpu_stack->pop(secondElem);
     if (secondPop != OK) return STACK_ERROR;
+
+    if (isZero(secondElem)) return ARITHMETIC_ERROR;
 
     return cpu_stack->push(firstElem / secondElem) == OK ? PROCESSOR_OK : STACK_ERROR;
 }

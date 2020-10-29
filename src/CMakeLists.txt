@@ -8,6 +8,7 @@ add_executable(executable
         processor.cpp processor.h
         assembler.cpp assembler.h
         disassebmler.cpp disassebmler.h
-        unbreakable_stack.h assembly.h)
+        unbreakable_stack.h
+        checks.h)
 
 target_compile_options(executable PRIVATE -Wall -Wextra)

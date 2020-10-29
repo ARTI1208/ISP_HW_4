@@ -22,14 +22,7 @@ enum command : char {
     PUSH_REG,
 };
 
-enum mode : int {
-    WAITING_COMMAND = 0x100,
-    WAITING_REG = 0x1000,
-    WAITING_NUM = 0x10000,
-    WAITING_REG_OR_NUM = 0x100000,
-};
-
-bool assembly(const char* path, std::vector<char>& result);
+bool assemble(const char* path, std::vector<char>& result);
 
 
 #endif //ISP_DZ4_ASSEMBLER_H
