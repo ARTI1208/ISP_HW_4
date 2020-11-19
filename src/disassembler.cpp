@@ -26,6 +26,30 @@ static size_t readNum(const char* str, size_t dataLen, std::string& command) {
     return sizeof(double);
 }
 
+size_t disassembler::readLabel(const char* str, size_t dataLen, std::string& command) {
+    if (dataLen < sizeof(long)) return 0;
+
+    union {
+        char data[sizeof(long)];
+        long value;
+    } converter {};
+
+    for (size_t i = 0; i < sizeof(long); ++i) {
+        converter.data[i] = str[i];
+    }
+
+    auto iter = labels.find(converter.value);
+    if (iter == labels.end()) {
+        std::string labelName = "label_" + std::to_string(labels.size());
+        labels.emplace(converter.value, labelName);
+        command += labelName;
+    } else {
+        command += iter->second;
+    }
+
+    return sizeof(double);
+}
+
 static size_t readReg(const char* str, size_t dataLen, std::string& command) {
     if (dataLen < sizeof(char)) return 0;
 
@@ -40,7 +64,7 @@ static size_t readReg(const char* str, size_t dataLen, std::string& command) {
     return sizeof(char);
 }
 
-static size_t readCommand(const char* str, size_t dataLen, std::string& command) {
+size_t disassembler::readCommand(const char* str, size_t dataLen, std::string& command) {
     if (dataLen == 0) return 0;
 
     switch (str[0]) {
@@ -52,6 +76,8 @@ static size_t readCommand(const char* str, size_t dataLen, std::string& command)
         case IN:       command = "in";       return sizeof(char);
         case OUT:      command = "out";      return sizeof(char);
         case POP:      command = "pop";      return sizeof(char);
+        case HLT:      command = "hlt";      return sizeof(char);
+        case RET:      command = "ret";      return sizeof(char);
         case PUSH:
             command = "push ";
             if (readNum(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
@@ -64,12 +90,46 @@ static size_t readCommand(const char* str, size_t dataLen, std::string& command)
             command = "push ";
             if (readReg(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
             return 2 * sizeof(char);
+        case JMP:
+            command = "jmp ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
+        case CALL:
+            command = "call ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
+        case IFE:
+            command = "ife ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
+        case IFNE:
+            command = "ifne ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
+        case IFL:
+            command = "ifl ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
+        case IFLE:
+            command = "ifle ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
+        case IFG:
+            command = "ifg ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
+        case IFGE:
+            command = "ifge ";
+            if (readLabel(str + sizeof(char), dataLen - sizeof(char), command) == 0) return 0;
+            return sizeof(char) + sizeof(long);
     }
+
+    printf("Error: unknown command %d\n", str[0]);
 
     return 0;
 }
 
-bool disassemble(const char* originalPath, const char* writePath) {
+bool disassembler::disassemble(const char* originalPath, const char* writePath) {
     int descriptor = open(originalPath, O_RDONLY);
 
     struct stat fileStat{};
@@ -80,22 +140,56 @@ bool disassemble(const char* originalPath, const char* writePath) {
 
     close(descriptor);
 
+    for (uint i = 0; i < codePasses; ++i) {
+        bool res = runCodePass(data, fileStat.st_size, i, writePath);
 
-    FILE* outputFile = fopen(writePath, "w");
-
-    for (off_t i = 0; i <= fileStat.st_size;) {
-        std::string command;
-        size_t commandReadResult = readCommand(data + i, fileStat.st_size - i, command);
-        if (commandReadResult == 0) return false;
-
-        fwrite(command.c_str(), sizeof(char), command.length(), outputFile);
-        fprintf(outputFile, "%s", "\n");
-
-        i += commandReadResult;
+        if (!res) {
+            munmap(data, fileStat.st_size);
+            return false;
+        }
     }
 
-    fclose(outputFile);
     munmap(data, fileStat.st_size);
 
     return true;
+}
+
+bool disassembler::runCodePass(const char* code, off_t codeLength, uint passNumber, const char* writePath) {
+
+    if (passNumber == 0) { //decode labels
+
+        for (off_t i = 0; i < codeLength;) {
+            std::string command;
+            size_t commandReadResult = readCommand(code + i, codeLength - i, command);
+            if (commandReadResult == 0) return false;
+
+            i += commandReadResult;
+        }
+
+        return true;
+    } else if (passNumber == 1) { // full decode
+        FILE* outputFile = fopen(writePath, "w");
+
+        for (off_t i = 0; i < codeLength;) {
+            std::string command;
+            size_t commandReadResult = readCommand(code + i, codeLength - i, command);
+            if (commandReadResult == 0) return false;
+
+            fwrite(command.c_str(), sizeof(char), command.length(), outputFile);
+            fprintf(outputFile, "%s", "\n");
+
+            i += commandReadResult;
+
+            auto iter = labels.find(i);
+            if (iter != labels.end()) {
+                fprintf(outputFile, "%s:\n", labels[i].data());
+            }
+        }
+
+        fclose(outputFile);
+        return true;
+    }
+
+
+    return false;
 }

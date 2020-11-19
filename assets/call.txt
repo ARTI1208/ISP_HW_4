@@ -1,0 +1,13 @@
+in
+in
+in
+
+call triple_sum
+
+out
+hlt
+
+triple_sum:
+add
+add
+ret

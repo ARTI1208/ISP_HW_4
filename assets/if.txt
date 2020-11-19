@@ -1,0 +1,17 @@
+in
+in
+ifl out_first
+jmp out_second
+
+out_first:
+in
+in
+add
+out
+hlt
+
+out_second:
+in
+in
+sub
+out

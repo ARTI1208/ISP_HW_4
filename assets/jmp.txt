@@ -1,0 +1,8 @@
+in
+out
+jmp wat
+in
+in
+out
+wat:
+in

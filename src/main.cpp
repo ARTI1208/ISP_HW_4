@@ -17,7 +17,8 @@ static int runExecute(const char* programPath) {
 static int runAssemble(const char* programPath, const char* outputPath) {
 
     std::vector<char> assembledCode;
-    bool res = assemble(programPath, assembledCode);
+    assembler assembler;
+    bool res = assembler.assemble(programPath, assembledCode);
 
     if (!res) {
         printf("Assemble error\n");
@@ -35,7 +36,8 @@ static int runAssemble(const char* programPath, const char* outputPath) {
 
 static int runDisassemble(const char* bytesPath, const char* outputPath) {
 
-    bool res = disassemble(bytesPath, outputPath);
+    disassembler disassembler;
+    bool res = disassembler.disassemble(bytesPath, outputPath);
 
     if (res) {
         printf("Disassemble successful\n");

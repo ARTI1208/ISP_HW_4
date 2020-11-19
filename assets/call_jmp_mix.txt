@@ -1,0 +1,22 @@
+jmp main
+
+write_sum:
+    out
+    ret
+
+read_args:
+    in
+    in
+    in
+    ret
+
+triple_sum:
+    add
+    add
+    ret
+
+main:
+    call read_args
+    call triple_sum
+    call write_sum
+    hlt

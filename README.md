@@ -1,6 +1,6 @@
 # ISP_DZ4 (Processor)
 
-Simple processor realisation with assembler and disassembler 
+Simple processor realisation with assembler and disassembler. Under construction
 
 ## Build
 On linux, you can build using CMake

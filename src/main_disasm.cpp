@@ -4,7 +4,8 @@
 
 static int runDisassemble(const char* bytesPath, const char* outputPath) {
 
-    bool res = disassemble(bytesPath, outputPath);
+    disassembler disassembler;
+    bool res = disassembler.disassemble(bytesPath, outputPath);
 
     if (res) {
         printf("Disassemble successful\n");

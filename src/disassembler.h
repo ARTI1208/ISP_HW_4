@@ -7,8 +7,25 @@
 
 
 #include <vector>
+#include <string>
+#include <unordered_map>
 
-bool disassemble(const char* originalPath, const char* writePath);
+class disassembler {
+private:
+    std::unordered_map<long, std::string> labels;
+
+    const uint codePasses = 2;
+    uint currentPass = 0;
+
+    size_t readLabel(const char* str, size_t dataLen, std::string& command);
+
+    size_t readCommand(const char* str, size_t dataLen, std::string& command);
+
+    bool runCodePass(const char* code, off_t codeLength, uint passNumber, const char* writePath);
+
+public:
+    bool disassemble(const char* originalPath, const char* writePath);
+};
 
 
 #endif //ISP_DZ4_DISASSEMBLER_H
